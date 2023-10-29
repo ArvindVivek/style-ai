@@ -1,6 +1,9 @@
 from roboflow import Roboflow
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw
+import colorgram
+from io import BytesIO
 import os
 from sklearn.cluster import KMeans
 from dotenv import load_dotenv
@@ -10,23 +13,40 @@ load_dotenv()
 ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY")
 
 
-def find_dominant_color(image, num_clusters=3):
-    # Flatten the image to a list of pixels
-    pixels = image.reshape(-1, 3)
+# Function to extract ROI
+def extract_roi(data, img_path):
+    # Get the points for the ROI
+    points = data["predictions"][0]["points"]
 
-    # Apply K-means clustering to find dominant colors
-    kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init=10).fit(pixels)
-    cluster_centers = kmeans.cluster_centers_
+    # Create an empty mask
+    mask = Image.new(
+        "L",
+        (int(data["predictions"][0]["width"]), int(data["predictions"][0]["height"])),
+        0,
+    )
+    draw = ImageDraw.Draw(mask)
 
-    # Find the dominant color (cluster center) in RGB format
-    dominant_color_rgb = cluster_centers[
-        np.argmax(kmeans.labels_ == kmeans.predict([cluster_centers.mean(axis=0)]))
-    ]
+    # Convert points to tuples
+    points = [(int(point["x"]), int(point["y"])) for point in points]
 
-    # Convert dominant color to BGR format (OpenCV convention)
-    dominant_color_bgr = dominant_color_rgb[::-1]
+    # Draw polygon on the mask
+    draw.polygon(points, fill=255)
 
-    return dominant_color_bgr.astype(int)
+    # Get the bounding box of the mask
+    bbox = mask.getbbox()
+
+    # Crop the original image using the bounding box
+    roi = Image.open(img_path)  # Replace with the path to your original image
+    roi = roi.crop(bbox)
+
+    return roi
+
+
+# Function to get dominant color
+def get_dominant_color(image):
+    colors = colorgram.extract(image, 1)
+    dominant_color = colors[0].rgb
+    return dominant_color
 
 
 # Initialize Roboflow
@@ -39,16 +59,12 @@ for image in os.listdir("data/subset"):
     prediction = model.predict(f"data/subset/{image}").json()
     class_value = prediction["predictions"][0]["class"]
 
-    # Load the image for dominant color detection
-    image_path = f"data/subset/{image}"
-    image = cv2.imread(image_path)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    roi = extract_roi(prediction, f"data/subset/{image}")
 
-    # Find the dominant color for the entire image
-    try:
-        dominant_color = find_dominant_color(image)
+    # Get the dominant color
+    dominant_color = get_dominant_color(roi)
 
-        print(f"Class Value: {class_value}")
-        print(f"Dominant Color: {dominant_color}")
-    except Exception as e:
-        print(f"Error processing image {image}: {e}")
+    # Combine class and RGB color
+    result = f"Class: {class_value}, Dominant Color: RGB({dominant_color[0]}, {dominant_color[1]}, {dominant_color[2]})"
+
+    print(result)
