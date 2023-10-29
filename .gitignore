@@ -1,2 +1,3 @@
 server/.env
 server/data
+client/style-ai-client/node_modules
