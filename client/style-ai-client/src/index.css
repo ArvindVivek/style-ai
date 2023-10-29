@@ -1,0 +1,394 @@
+:root {
+  --primary: #bfe1f4; /* Light blue primary color */
+  --primary-text: #f9fafb; /* Light text color */
+  --secondary-text: #f3f4f6; /* Light gray text */
+  --tertiary-text: #e5e7eb; /* Light grayish text */
+  --secondary-background: #bfe1f4; /* Much lighter background */
+  --bubbles-background: #374151; /* Dark gray message bubbles */
+  --bubbles-mine-background: #003f5c; /* Dark blue for user's messages */
+  --focus-ring: #3b82f680; /* Light focus ring */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --primary: #bfe1f4;
+    --primary-text: #f9fafb;
+    --secondary-text: #f3f4f6;
+    --tertiary-text: #e5e7eb;
+    --secondary-background: #0f172a;
+    --bubbles-background: #374151;
+    --bubbles-mine-background: #003f5c;
+  }
+}
+
+/* Stylish Header */
+.chat header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 3;
+  background: var(--primary);
+  color: var(--bubbles-mine-background);
+  text-align: center;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border-bottom: 2px solid var(--primary);
+}
+
+.chat header::before,
+.chat header::after {
+  display: block;
+  content: "";
+  position: absolute;
+  top: 100%;
+  border-top: 2px solid var(--primary);
+  width: 40px;
+  height: 10px;
+}
+
+.chat header::before {
+  left: 0;
+}
+
+.chat header::after {
+  right: 0;
+}
+
+.chat header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.chat header p {
+  margin: 0;
+  font-weight: 400;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat header p::before,
+.chat header p::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: var(--tertiary-text);
+  border-radius: 50%;
+  margin: 0 8px;
+  animation: pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.chat header p::after {
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion) {
+  .chat header p::after {
+    display: none;
+  }
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.chat header p strong {
+  font-weight: 500;
+}
+.chat header p input {
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+  width: 100px;
+  border-radius: 0;
+}
+
+.chat article {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 16px auto;
+  max-width: 300px;
+  padding-left: 16px;
+  padding-right: calc(16px + 10vw);
+  animation: 0.15s ease-in-out message;
+  box-sizing: content-box;
+  min-height: 100px;
+  margin-bottom: 60px;
+  color: var(--primary);
+}
+
+@media (prefers-reduced-motion) {
+  .chat article {
+    animation-name: fade;
+  }
+}
+
+@keyframes message {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.chat article div {
+  font-weight: 500;
+  color: var(--primary-text);
+}
+
+.chat article p {
+  color: white;
+  background-color: var(--bubbles-mine-background);
+  margin-bottom: 1em;
+  padding: 20px;
+  margin: 0.5em 0;
+  border-radius: 16px;
+  border-bottom-left-radius: 0;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  text-overflow: ellipsis;
+  /* overflow-x: hidden; */
+  line-height: 1.4;
+  grid-column: 1 / 3;
+  justify-self: start;
+  white-space: pre-line;
+  position: relative;
+}
+
+.chat article.message-mine {
+  padding-left: calc(16px + 10vw);
+  padding-right: 16px;
+}
+
+.chat article.message-mine div {
+  text-align: right;
+  justify-self: end;
+  grid-column: 1 / 3;
+}
+
+.chat article.message-mine p {
+  border-radius: 16px;
+  border-bottom-right-radius: 0;
+  background: var(--bubbles-mine-background);
+  color: white;
+  justify-self: end;
+}
+
+.chat form {
+  position: fixed;
+  bottom: 0;
+  left: 8px;
+  width: calc(100% - 16px);
+  height: 50px;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+  background-color: #bfe1f4;
+  color: #bfe1f4;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 12px;
+  display: flex;
+  z-index: 3;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chat form {
+    background-color: var(--bubbles-mine-background);
+  }
+}
+
+.chat input {
+  color: var(--bubbles-mine-background);
+  width: 40%;
+  border: 0;
+  background: var(--primary);
+  font-size: 18px;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-family: inherit;
+  border: 3px solid transparent;
+  border-radius: 16px;
+  display: block;
+  margin: 0 auto;
+  height: 36px;
+}
+
+.chat input::placeholder {
+  color: var(--bubbles-mine-background);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chat input {
+    color: var(--bubbles-mine-background);
+  }
+
+  .chat input::placeholder {
+    color: var(--bubbles-mine-background)
+  }
+}
+
+.chat input:focus {
+  outline: 0;
+  border-color: var(--focus-ring);
+}
+
+.chat form > button {
+  appearance: none;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  position: absolute;
+  right: 325px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--bubbles-mine-background);
+  font-size: 0;
+  transition: 0.15s ease-in-out opacity;
+
+  background-color: var(--bubbles-mine-background);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='white' %3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5' /%3E%3C/svg%3E%0A");
+  background-size: 24px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.chat button:disabled {
+  opacity: 0.7;
+}
+
+article button {
+  position: absolute;
+  bottom: -0.5em;
+  right: -0.5em;
+  border: 0px;
+  border-radius: 10px;
+  padding: 0.3em;
+  z-index: 2;
+  min-width: 2em;
+  min-height: 1em;
+}
+
+article button {
+  display: none;
+  cursor: pointer;
+}
+
+article:hover button,
+article button:has(span) {
+  display: block;
+}
+
+article button span {
+  padding-left: 0.2em;
+}
+
+.left-box {
+  width: 250px;
+  background-color: #e5e7eb;
+  height: 28%;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  z-index: 2;
+  border: 4px solid #ccc; /* Add a border to create a box appearance */
+  border-radius: 12px; /* Add border radius for a rounded look */
+  /* Add any other styles you need */
+}
+
+.left-box-header {
+  background-color: var(--primary); /* Use a color from your custom properties */
+  color: var(--bubbles-mine-background); /* Text color for the header */
+  padding: 10px;
+  text-align: center;
+}
+
+.left-box-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.lower-left-box {
+  width: 250px;
+  background-color: #e5e7eb;
+  height: 28%;
+  position: fixed;
+  top: 280px;
+  left: 0;
+  z-index: 2;
+  border: 4px solid #ccc; 
+  border-radius: 12px;
+  overflow-y: auto;
+}
+
+.lower-left-box-header {
+  background-color: var(--primary); /* Use a color from your custom properties */
+  color: var(--bubbles-mine-background); /* Text color for the header */
+  padding: 10px;
+  text-align: center;
+}
+
+.lower-left-box-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.right-box {
+  width: 250px;
+  background-color: #f5f5f5;
+  height: 75%;
+  position: fixed;
+  top: 70px;
+  right: 0;
+  z-index: 2;
+  border: 4px solid #ccc; /* Add a border to create a box appearance */
+  border-radius: 12px; /* Add border radius for a rounded look */
+}
+
+.right-box-header {
+  background-color: var(--primary); /* Use a color from your custom properties */
+  color: var(--bubbles-mine-background); /* Text color for the header */
+  padding: 10px;
+  text-align: center;
+}
+
+.right-box-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--bubbles-mine-background);
+  max-height: 150px; 
+  overflow: auto;    
+}
+
+.items-list li {
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+.items-list li:last-child {
+  border-bottom: none;
+}
