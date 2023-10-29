@@ -7,10 +7,40 @@ from io import BytesIO
 import os
 from sklearn.cluster import KMeans
 from dotenv import load_dotenv
+import supervision as sv
+from typing import Tuple
+from lavis.models import load_model_and_preprocess
+import torch
 
 # Load environment variables
 load_dotenv()
 ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY")
+
+# Initialize Roboflow
+# Model Credits: https://universe.roboflow.com/roboflow-jvuqo/fashion-assistant-segmentation
+rf = Roboflow(api_key=ROBOFLOW_API_KEY)
+project = rf.workspace().project("fashion-assistant-segmentation")
+model = project.version(5).model
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+PROMPT = "What is the style of this clothing?"
+
+model2, vis_processors, txt_processors = load_model_and_preprocess(
+    name="blip_vqa", model_type="vqav2"
+)
+
+prompt_processed = txt_processors["eval"](PROMPT)
+
+images_numpy = []
+predictions = []
+
+
+def load_image(image_path: str) -> Tuple[PIL.Image.Image, np.ndarray]:
+    image_pil = Image.open(image_path).convert("RGB")
+    image_numpy = np.asarray(image_pil)
+    image_numpy = cv2.cvtColor(image_numpy, cv2.COLOR_RGB2BGR)
+    return image_pil, image_numpy
 
 
 # Function to extract ROI
@@ -49,13 +79,9 @@ def get_dominant_color(image):
     return dominant_color
 
 
-# Initialize Roboflow
-rf = Roboflow(api_key=ROBOFLOW_API_KEY)
-project = rf.workspace().project("fashion-assistant-segmentation")
-model = project.version(5).model
-
 # Infer on local images and iterate through data folder
 for image in os.listdir("data/subset"):
+    image_path = f"data/subset/{image}"
     prediction = model.predict(f"data/subset/{image}").json()
     class_value = prediction["predictions"][0]["class"]
 
@@ -65,6 +91,15 @@ for image in os.listdir("data/subset"):
     dominant_color = get_dominant_color(roi)
 
     # Combine class and RGB color
-    result = f"Class: {class_value}, Dominant Color: RGB({dominant_color[0]}, {dominant_color[1]}, {dominant_color[2]})"
+    result = f"Class: {class_value}, Color: RGB({dominant_color[0]}, {dominant_color[1]}, {dominant_color[2]})"
 
-    print(result)
+    image_pil, image_numpy = load_image(image_path=str(image_path))
+    image_processed = vis_processors["eval"](image_pil).unsqueeze(0).to(DEVICE)
+    prediction2 = model2.predict_answers(
+        samples={"image": image_processed, "text_input": prompt_processed},
+        inference_method="generate",
+    )[0]
+    images_numpy.append(image_numpy)
+    predictions.append(prediction2)
+
+    print(result, prediction2)
